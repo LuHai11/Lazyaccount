@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,7 +7,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -24,17 +22,25 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
   final String title;
+
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
+
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  void _incrementCounter() {
+  List<String> addText = [];
+  double totalAmount = 0.0; // 新增總和金額變數
+
+  final TextEditingController myController = TextEditingController();
+
+  void _add() {
     setState(() {
-      _counter++;
+      double amount = double.tryParse(myController.text) ?? 0.0; // 取得輸入的金額
+      totalAmount += amount; // 更新總和金額
+      addText.add(myController.text);
     });
   }
-  final TextEditingController myController = new TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,28 +48,38 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Column(
-          //mainAxisAlignment: MainAxisAlignment.,
-          children: <Widget>[
-            TextField(
-              controller: myController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: '輸入金額',
-              ),
+        children: <Widget>[
+          TextField(
+            controller: myController,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: '輸入金額',
             ),
-            ElevatedButton.icon(
-              icon: Icon(Icons.save),
-              onPressed: (){
-                final snackBar1 = SnackBar(
-                  content: Text('你按了ElevatedButton.icon'),
-                  action: SnackBarAction(
-                    label: 'Toast訊息',
-                    onPressed:() =>Fluttertoast.showToast(msg: '你按下snackBar'),
-                  ),);
+          ),
+          ElevatedButton.icon(
+            icon: Icon(Icons.save),
+            label: Text('Save'),
+            onPressed: () {
+              _add();
+              myController.clear(); // 清空 TextField 內容
+            },
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: addText.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(addText[index]),
+                );
               },
             ),
-          ],
-        ),
+          ),
+          Text(
+            '總和金額: \$${totalAmount.toStringAsFixed(2)}',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ), // 顯示總和金額
+        ],
+      ),
     );
   }
 }
