@@ -1,11 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -19,8 +23,28 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class Account {
+  final String id;
+  final String category;
+  final double amount;
+
+  Account({
+    required this.id,
+    required this.category,
+    required this.amount,
+  });
+
+  factory Account.fromMap(Map<String, dynamic> map, String id) {
+    return Account(
+      id: id,
+      category: map['category'] ?? '未知類別',
+      amount: (map['amount'] ?? 0.0).toDouble(),
+    );
+  }
+}
+
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
   final String title;
 
   @override
@@ -28,7 +52,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<Map<String, dynamic>> addText = [];
+  List<Account> addText = [];
   double totalAmount = 0.0;
 
   final TextEditingController myController = TextEditingController();
@@ -55,19 +79,51 @@ class _MyHomePageState extends State<MyHomePage> {
     '行',
   ];
 
+  // 監聽器設定
+  @override
+  void initState() {
+    super.initState();
+    _getTotalAmount();
+  }
+
+  void _getTotalAmount() {
+    FirebaseFirestore.instance.collection('account').get().then((querySnapshot) {
+      double total = 0.0;
+      List<Account> texts = [];
+      querySnapshot.docs.forEach((doc) {
+        Account account = Account.fromMap(doc.data(), doc.id);
+        total += account.amount;
+        texts.add(account);
+      });
+      setState(() {
+        totalAmount = total;
+        addText = texts;
+      });
+    });
+  }
+
   void _add() {
     if (_formKey.currentState!.validate()) {
       double amount = double.parse(myController.text);
+      String selectedCategory = _selectedCategory; // Save the value before calling setState
       setState(() {
         totalAmount += amount;
-        addText.add({
-          'category': _selectedCategory,
-          'amount': amount,
-        });
+        addText.add(
+          Account(
+            id: '',
+            category: selectedCategory,
+            amount: amount,
+          ),
+        );
         _selectedCategory = ''; // 清空選擇的類別
       });
       myController.clear();
       _isExpanded = false; // 選擇後自動收起
+      // 將使用者輸入的數值和類別記錄到 Firebase
+      FirebaseFirestore.instance.collection('account').add({
+        'category': selectedCategory,
+        'amount': amount,
+      });
     }
   }
 
@@ -110,10 +166,20 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _deleteCategory(int index) {
+  void _deleteTransaction(String id, double amount) {
     setState(() {
-      _categoryOptions.removeAt(index);
+      totalAmount -= amount;
+      addText.removeWhere((transaction) => transaction.id == id);
     });
+    FirebaseFirestore.instance.collection('account').doc(id).delete();
+  }
+
+  void _deleteCategory(int index) {
+    if (index >= 0 && index < _categoryOptions.length) {
+      setState(() {
+        _categoryOptions.removeAt(index);
+      });
+    }
   }
 
   @override
@@ -188,19 +254,29 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.grey)),
-                ),
-                child: ListView.builder(
-                  itemCount: addText.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
+              child: ListView.builder(
+                itemCount: addText.length,
+                itemBuilder: (context, index) {
+                  String id = addText[index].id;
+                  return Dismissible(
+                    key: Key(id),
+                    background: Container(
+                      color: Colors.red,
+                      child: Icon(Icons.delete, color: Colors.white),
+                      alignment: Alignment.centerRight,
+                      padding: EdgeInsets.only(right: 20.0),
+                    ),
+                    onDismissed: (direction) {
+                      double amount = addText[index].amount;
+                      _deleteTransaction(id, amount);
+                    },
+                    child: ListTile(
                       title: Text(
-                          '${addText[index]['category']} - \$${addText[index]['amount'].toStringAsFixed(2)}'),
-                    );
-                  },
-                ),
+                        '${addText[index].category} - \$${addText[index].amount.toStringAsFixed(2)}',
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
             ElevatedButton.icon(

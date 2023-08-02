@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "497896140729",
+    "project_id": "lazyaccount-e02c5",
+    "storage_bucket": "lazyaccount-e02c5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:497896140729:android:7812ab6344c5ce25aa1068",
+        "android_client_info": {
+          "package_name": "com.example.lazyaccount1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "497896140729-vf8v1jkjr3v3b736qtggsdf2jbnllgh5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBI_zy8N4lE3MLXSXMAlv-9lDUkwKNFGPE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "497896140729-vf8v1jkjr3v3b736qtggsdf2jbnllgh5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
