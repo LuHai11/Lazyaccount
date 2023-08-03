@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'chart.dart';
+import 'caleder.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -283,6 +285,24 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: Icon(Icons.save),
               label: Text('Save'),
               onPressed: _add,
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ChartPage()), // 跳轉到 ChartPage
+                );
+              },
+              child: Text('chart'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Calendar()), // 跳轉到 Calendar
+                );
+              },
+              child: Text('顯示日曆'),
             ),
             Text(
               '總和金額: \$${totalAmount.toStringAsFixed(2)}',
